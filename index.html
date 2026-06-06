@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TradeMatrix AI — Smart Trading Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #060810;
+  --bg2: #0c1020;
+  --bg3: #111827;
+  --card: #0e1525;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #00e5a0;
+  --accent2: #7c6dfa;
+  --accent3: #ff6b35;
+  --red: #ff4560;
+  --green: #00e5a0;
+  --text: #f0f4ff;
+  --muted: #7a88a8;
+  --mono: 'Space Mono', monospace;
+  --head: 'Syne', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--body);overflow-x:hidden;font-size:15px}
+
+/* ---- GRID BG ---- */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,229,160,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,160,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+
+/* ---- NAV ---- */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(6,8,16,0.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:60px}
+.nav-logo{font-family:var(--head);font-weight:800;font-size:18px;color:var(--accent);letter-spacing:-0.5px}
+.nav-logo span{color:var(--text)}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;letter-spacing:.03em}
+.nav-links a:hover{color:var(--accent)}
+.nav-cta{background:var(--accent);color:#000;font-family:var(--head);font-weight:700;font-size:12px;padding:8px 18px;border-radius:6px;border:none;cursor:pointer;letter-spacing:.05em;text-transform:uppercase}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,229,160,.4)}50%{opacity:.8;box-shadow:0 0 0 6px rgba(0,229,160,0)}}
+
+/* ---- HERO ---- */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:80px 2rem 4rem;position:relative;z-index:1;max-width:1100px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(0,229,160,0.08);border:1px solid rgba(0,229,160,0.2);color:var(--accent);font-size:12px;padding:6px 14px;border-radius:20px;margin-bottom:2rem;font-family:var(--mono);letter-spacing:.05em}
+.hero h1{font-family:var(--head);font-size:clamp(2.8rem,7vw,5.5rem);font-weight:800;line-height:1.0;letter-spacing:-2px;margin-bottom:1.5rem}
+.hero h1 .line2{color:var(--accent)}
+.hero-sub{font-size:1.1rem;color:var(--muted);max-width:520px;line-height:1.7;margin-bottom:2.5rem}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3rem}
+.btn-primary{background:var(--accent);color:#000;font-family:var(--head);font-weight:700;font-size:13px;padding:14px 28px;border-radius:8px;border:none;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:transform .15s,box-shadow .15s}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,229,160,.25)}
+.btn-sec{background:transparent;color:var(--text);font-family:var(--head);font-weight:600;font-size:13px;padding:14px 28px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;letter-spacing:.04em}
+
+/* ---- TICKER ---- */
+.ticker-bar{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:10px 0;overflow:hidden;position:relative;z-index:1}
+.ticker-inner{display:flex;gap:3rem;animation:ticker 25s linear infinite;white-space:nowrap;width:max-content}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.tick-item{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px}
+.tick-sym{color:var(--text);font-weight:700}
+.tick-price{color:var(--muted)}
+.tick-up{color:var(--green)}
+.tick-dn{color:var(--red)}
+
+/* ---- SECTIONS ---- */
+section{padding:5rem 2rem;max-width:1100px;margin:0 auto;position:relative;z-index:1}
+.sec-label{font-family:var(--mono);font-size:11px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:.75rem}
+.sec-title{font-family:var(--head);font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;letter-spacing:-1px;line-height:1.1;margin-bottom:1rem}
+.sec-sub{color:var(--muted);max-width:480px;line-height:1.7;margin-bottom:2.5rem}
+
+/* ---- SIGNALS ---- */
+.signals-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem}
+.signal-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;position:relative;overflow:hidden;transition:border-color .2s,transform .2s}
+.signal-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.signal-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.signal-card.buy::before{background:var(--green)}
+.signal-card.sell::before{background:var(--red)}
+.signal-card.watch::before{background:var(--accent2)}
+.sig-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.sig-pair{font-family:var(--head);font-weight:700;font-size:18px;letter-spacing:-0.5px}
+.sig-badge{font-family:var(--mono);font-size:10px;padding:4px 10px;border-radius:4px;font-weight:700;letter-spacing:.08em}
+.sig-badge.buy{background:rgba(0,229,160,.12);color:var(--green);border:1px solid rgba(0,229,160,.2)}
+.sig-badge.sell{background:rgba(255,69,96,.12);color:var(--red);border:1px solid rgba(255,69,96,.2)}
+.sig-badge.watch{background:rgba(124,109,250,.12);color:var(--accent2);border:1px solid rgba(124,109,250,.2)}
+.sig-levels{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-bottom:.75rem}
+.sig-level{background:rgba(255,255,255,.03);border-radius:6px;padding:.5rem;text-align:center}
+.sig-level-label{font-size:10px;color:var(--muted);margin-bottom:2px;font-family:var(--mono)}
+.sig-level-val{font-family:var(--mono);font-size:13px;font-weight:700}
+.sig-level-val.entry{color:var(--accent)}
+.sig-level-val.sl{color:var(--red)}
+.sig-level-val.tp{color:var(--green)}
+.sig-meta{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted)}
+.sig-ai-badge{display:flex;align-items:center;gap:4px;background:rgba(124,109,250,.1);color:var(--accent2);font-size:10px;padding:3px 8px;border-radius:4px;font-family:var(--mono)}
+.sig-conf{display:flex;align-items:center;gap:4px}
+.conf-bar{width:60px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.conf-fill{height:100%;border-radius:2px;background:var(--accent)}
+
+/* ---- DASHBOARD ---- */
+.dashboard{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.dash-header{background:var(--bg2);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.dash-tabs{display:flex;gap:.5rem}
+.dash-tab{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:var(--mono);transition:all .2s}
+.dash-tab.active,.dash-tab:hover{background:rgba(0,229,160,.08);border-color:rgba(0,229,160,.3);color:var(--accent)}
+.dash-body{padding:1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.chart-area{background:var(--bg2);border-radius:10px;padding:1rem;min-height:220px;position:relative;overflow:hidden}
+.chart-title{font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:1rem;display:flex;justify-content:space-between}
+.candles{display:flex;align-items:flex-end;gap:3px;height:160px;padding:0 8px}
+.candle-wrap{display:flex;flex-direction:column;align-items:center;flex:1;cursor:pointer;transition:opacity .2s}
+.candle-wrap:hover{opacity:.7}
+.wick{width:1px;background:currentColor;flex-shrink:0}
+.body{width:8px;border-radius:1px;flex-shrink:0}
+.candle-wrap.up{color:var(--green)}
+.candle-wrap.dn{color:var(--red)}
+.stats-col{display:flex;flex-direction:column;gap:.75rem}
+.stat-box{background:var(--bg2);border-radius:10px;padding:1rem;display:flex;align-items:center;justify-content:space-between}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:3px}
+.stat-val{font-family:var(--head);font-size:22px;font-weight:700}
+.stat-val.up{color:var(--green)}
+.stat-val.dn{color:var(--red)}
+.stat-change{font-family:var(--mono);font-size:11px;padding:3px 8px;border-radius:4px}
+.stat-change.up{background:rgba(0,229,160,.1);color:var(--green)}
+.stat-change.dn{background:rgba(255,69,96,.1);color:var(--red)}
+
+/* ---- LIQUIDITY / STRUCTURE ---- */
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.analysis-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem}
+.analysis-card h4{font-family:var(--head);font-weight:700;font-size:14px;margin-bottom:.75rem;color:var(--text)}
+.liq-level{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid var(--border)}
+.liq-level:last-child{border-bottom:none}
+.liq-price{font-family:var(--mono);font-size:13px}
+.liq-bar-wrap{flex:1;margin:0 .75rem;height:6px;background:rgba(255,255,255,.05);border-radius:3px;overflow:hidden}
+.liq-bar{height:100%;border-radius:3px}
+.liq-type{font-size:11px;font-family:var(--mono);padding:2px 8px;border-radius:3px}
+.liq-type.res{background:rgba(255,69,96,.1);color:var(--red)}
+.liq-type.sup{background:rgba(0,229,160,.1);color:var(--green)}
+.struct-item{display:flex;gap:.75rem;padding:.6rem 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.struct-item:last-child{border-bottom:none}
+.struct-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;margin-top:2px}
+.struct-title{font-size:13px;font-weight:500;margin-bottom:2px}
+.struct-sub{font-size:11px;color:var(--muted)}
+
+/* ---- AI BOT ---- */
+.ai-chat{background:var(--card);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.ai-header{background:var(--bg2);padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:.75rem}
+.ai-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:16px}
+.ai-name{font-family:var(--head);font-weight:700;font-size:14px}
+.ai-status{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px}
+.ai-messages{padding:1.25rem;display:flex;flex-direction:column;gap:.75rem;min-height:280px;max-height:320px;overflow-y:auto}
+.ai-msg{max-width:85%}
+.ai-msg.bot{background:var(--bg2);border-radius:0 12px 12px 12px;padding:.875rem 1rem;font-size:13px;line-height:1.6}
+.ai-msg.user{background:rgba(124,109,250,.15);border:1px solid rgba(124,109,250,.2);border-radius:12px 0 12px 12px;padding:.875rem 1rem;font-size:13px;align-self:flex-end;color:var(--text)}
+.ai-msg-meta{font-size:10px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+.ai-input-row{padding:1rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:.75rem}
+.ai-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:.7rem 1rem;color:var(--text);font-family:var(--body);font-size:13px;outline:none;transition:border-color .2s}
+.ai-input:focus{border-color:rgba(0,229,160,.3)}
+.ai-send{background:var(--accent);color:#000;border:none;border-radius:8px;padding:.7rem 1.25rem;cursor:pointer;font-family:var(--head);font-weight:700;font-size:12px;transition:transform .15s}
+.ai-send:hover{transform:scale(1.03)}
+.ai-suggestions{padding:.75rem 1.25rem;display:flex;gap:.5rem;flex-wrap:wrap;border-top:1px solid var(--border)}
+.ai-sug{background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:5px 12px;border-radius:20px;cursor:pointer;font-family:var(--mono);transition:all .2s;white-space:nowrap}
+.ai-sug:hover{border-color:rgba(0,229,160,.3);color:var(--accent);background:rgba(0,229,160,.05)}
+
+/* ---- NEWS ---- */
+.news-grid{display:flex;flex-direction:column;gap:.75rem}
+.news-item{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color .2s;cursor:pointer}
+.news-item:hover{border-color:var(--border2)}
+.news-time{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:nowrap;margin-top:2px;min-width:55px}
+.news-body{flex:1}
+.news-title{font-size:14px;font-weight:500;margin-bottom:.3rem;line-height:1.4}
+.news-meta{font-size:11px;color:var(--muted);display:flex;gap:.75rem}
+.news-impact{font-size:10px;padding:2px 8px;border-radius:3px;font-family:var(--mono);font-weight:700}
+.news-impact.high{background:rgba(255,69,96,.1);color:var(--red)}
+.news-impact.med{background:rgba(255,107,53,.1);color:var(--accent3)}
+.news-impact.low{background:rgba(122,136,168,.1);color:var(--muted)}
+
+/* ---- AUTOMATION ---- */
+.auto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem}
+.auto-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center;transition:border-color .2s,transform .2s}
+.auto-card:hover{border-color:rgba(0,229,160,.2);transform:translateY(-3px)}
+.auto-icon{width:48px;height:48px;border-radius:12px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:22px}
+.auto-title{font-family:var(--head);font-weight:700;font-size:14px;margin-bottom:.4rem}
+.auto-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:.75rem}
+.auto-status{font-family:var(--mono);font-size:10px;display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px}
+.auto-status.on{background:rgba(0,229,160,.1);color:var(--green)}
+.auto-status.off{background:rgba(122,136,168,.1);color:var(--muted)}
+.status-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+
+/* ---- PRICING ---- */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem}
+.pricing-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.75rem;position:relative}
+.pricing-card.featured{border-color:rgba(0,229,160,.3);background:linear-gradient(135deg,rgba(0,229,160,.05),var(--card))}
+.pricing-featured-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--accent);color:#000;font-family:var(--head);font-weight:700;font-size:11px;padding:4px 16px;border-radius:20px;white-space:nowrap;letter-spacing:.04em}
+.pricing-tier{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:.5rem;text-transform:uppercase}
+.pricing-price{font-family:var(--head);font-size:2.5rem;font-weight:800;letter-spacing:-1px;margin-bottom:1.25rem}
+.pricing-price span{font-size:1rem;color:var(--muted);font-weight:400}
+.pricing-features{list-style:none;display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.5rem}
+.pricing-features li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:.5rem}
+.pricing-features li::before{content:'→';color:var(--accent);font-size:11px;font-family:var(--mono)}
+.pricing-features li.active{color:var(--text)}
+.pricing-btn{width:100%;padding:12px;border-radius:8px;font-family:var(--head);font-weight:700;font-size:13px;letter-spacing:.04em;cursor:pointer;transition:all .2s;text-transform:uppercase}
+.pricing-btn.outline{background:transparent;border:1px solid var(--border2);color:var(--text)}
+.pricing-btn.solid{background:var(--accent);border:none;color:#000}
+.pricing-btn:hover{transform:translateY(-2px)}
+
+/* ---- INCOME CALC ---- */
+.calc-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.75rem}
+.calc-title{font-family:var(--head);font-weight:700;font-size:18px;margin-bottom:1.5rem}
+.calc-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.calc-label{font-size:13px;color:var(--muted);min-width:150px}
+.calc-input{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;color:var(--text);font-family:var(--mono);font-size:14px;width:100px;outline:none;text-align:right}
+.calc-input:focus{border-color:rgba(0,229,160,.3)}
+.calc-result{background:var(--bg2);border-radius:10px;padding:1.25rem;margin-top:1.25rem;display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;text-align:center}
+.calc-res-val{font-family:var(--head);font-size:1.6rem;font-weight:800;color:var(--accent)}
+.calc-res-label{font-size:11px;color:var(--muted);margin-top:3px;font-family:var(--mono)}
+
+/* ---- FOOTER ---- */
+footer{background:var(--bg2);border-top:1px solid var(--border);padding:3rem 2rem;margin-top:4rem;position:relative;z-index:1}
+.footer-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:2rem}
+.footer-brand{font-family:var(--head);font-weight:800;font-size:20px;color:var(--accent);margin-bottom:.75rem}
+.footer-desc{font-size:13px;color:var(--muted);line-height:1.6}
+.footer-col h5{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.75rem}
+.footer-col a{display:block;font-size:13px;color:var(--muted);text-decoration:none;margin-bottom:.4rem;transition:color .2s}
+.footer-col a:hover{color:var(--accent)}
+.footer-bottom{max-width:1100px;margin:2rem auto 0;padding-top:1.5rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);font-family:var(--mono)}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+/* ---- ANIMATIONS ---- */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .6s ease both}
+.fade-up:nth-child(2){animation-delay:.1s}
+.fade-up:nth-child(3){animation-delay:.2s}
+.fade-up:nth-child(4){animation-delay:.3s}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Trade<span>Matrix</span> AI</div>
+  <ul class="nav-links">
+    <li><a href="#signals">Signals</a></li>
+    <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#news">News</a></li>
+    <li><a href="#ai-bot">AI Bot</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <button class="nav-cta"><span class="live-dot"></span>Live Now</button>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker-bar" style="margin-top:60px">
+  <div class="ticker-inner" id="ticker"></div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge"><span class="live-dot"></span> AI-Powered Trading Intelligence</div>
+  <h1 class="fade-up">Smart Signals.<br><span class="line2">Real Profits.</span><br>Zero Emotion.</h1>
+  <p class="hero-sub fade-up">Full automation — live market signals, ICT/SMC analysis, liquidity zones, market structure, economic news. Sab kuch ek jagah. AI 24/7 kaam karta hai.</p>
+  <div class="hero-btns fade-up">
+    <button class="btn-primary" onclick="document.getElementById('signals').scrollIntoView({behavior:'smooth'})">View Live Signals</button>
+    <button class="btn-sec" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">See Pricing</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;max-width:600px">
+    <div style="text-align:center"><div style="font-family:var(--head);font-size:1.6rem;font-weight:800;color:var(--accent)" id="stat-signals">847</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">signals sent</div></div>
+    <div style="text-align:center"><div style="font-family:var(--head);font-size:1.6rem;font-weight:800;color:var(--accent)" id="stat-acc">78%</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">accuracy</div></div>
+    <div style="text-align:center"><div style="font-family:var(--head);font-size:1.6rem;font-weight:800;color:var(--accent)" id="stat-mem">2.4k</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">members</div></div>
+    <div style="text-align:center"><div style="font-family:var(--head);font-size:1.6rem;font-weight:800;color:var(--accent)">24/7</div><div style="font-size:11px;color:var(--muted);font-family:var(--mono)">AI active</div></div>
+  </div>
+</div>
+
+<!-- SIGNALS -->
+<section id="signals">
+  <div class="sec-label">Live Trading Signals</div>
+  <div class="sec-title">AI-Generated Signals</div>
+  <div class="sec-sub">Real-time buy/sell signals with entry, stop loss, and take profit. AI confidence score ke saath.</div>
+  <div class="signals-grid" id="signals-grid"></div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="dashboard" style="padding-top:2rem">
+  <div class="sec-label">Market Dashboard</div>
+  <div class="sec-title">Live Market Overview</div>
+  <div class="dashboard">
+    <div class="dash-header">
+      <div class="dash-tabs">
+        <button class="dash-tab active" onclick="switchTab(this,'xauusd')">XAUUSD</button>
+        <button class="dash-tab" onclick="switchTab(this,'eurusd')">EURUSD</button>
+        <button class="dash-tab" onclick="switchTab(this,'btcusd')">BTCUSD</button>
+        <button class="dash-tab" onclick="switchTab(this,'gbpusd')">GBPUSD</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px"><span class="live-dot"></span> Live Data</div>
+    </div>
+    <div class="dash-body" id="dash-body"></div>
+  </div>
+</section>
+
+<!-- ANALYSIS -->
+<section id="analysis">
+  <div class="sec-label">Market Structure & Liquidity</div>
+  <div class="sec-title">ICT / SMC Analysis</div>
+  <div class="sec-sub">Break of Structure, liquidity zones, order blocks — AI daily update karta hai.</div>
+  <div class="analysis-grid" id="analysis-grid"></div>
+</section>
+
+<!-- NEWS -->
+<section id="news">
+  <div class="sec-label">Economic Calendar & News</div>
+  <div class="sec-title">Market News Feed</div>
+  <div class="sec-sub">High-impact events aur breaking news automatically update hote hain.</div>
+  <div class="news-grid" id="news-grid"></div>
+</section>
+
+<!-- AI BOT -->
+<section id="ai-bot">
+  <div class="sec-label">AI Trading Assistant</div>
+  <div class="sec-title">Ask the AI</div>
+  <div class="sec-sub">Koi bhi market question pucho — AI real-time analysis deta hai.</div>
+  <div class="ai-chat">
+    <div class="ai-header">
+      <div class="ai-avatar">◈</div>
+      <div>
+        <div class="ai-name">TradeMatrix AI</div>
+        <div class="ai-status"><span class="live-dot"></span> Online — analyzing markets</div>
+      </div>
+    </div>
+    <div class="ai-messages" id="ai-messages"></div>
+    <div class="ai-suggestions">
+      <button class="ai-sug" onclick="askAI(this.textContent)">XAUUSD trend?</button>
+      <button class="ai-sug" onclick="askAI(this.textContent)">Liquidity levels today?</button>
+      <button class="ai-sug" onclick="askAI(this.textContent)">Best pair to trade now?</button>
+      <button class="ai-sug" onclick="askAI(this.textContent)">Market structure BTC?</button>
+    </div>
+    <div class="ai-input-row">
+      <input class="ai-input" id="ai-input" placeholder="Market ke baare mein kuch bhi pucho..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="ai-send" onclick="sendMsg()">Send →</button>
+    </div>
+  </div>
+</section>
+
+<!-- AUTOMATION -->
+<section id="automation">
+  <div class="sec-label">Full Automation System</div>
+  <div class="sec-title">Kya kya automatic hota hai</div>
+  <div class="auto-grid" id="auto-grid"></div>
+</section>
+
+<!-- INCOME CALCULATOR -->
+<section id="income">
+  <div class="sec-label">Income Calculator</div>
+  <div class="sec-title">Apni earning calculate karo</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+    <div class="calc-box">
+      <div class="calc-title">Monthly Income Estimator</div>
+      <div class="calc-row"><label class="calc-label">Premium members</label><input class="calc-input" id="c-prem" value="100" type="number" oninput="calcIncome()"></div>
+      <div class="calc-row"><label class="calc-label">Premium price (₹)</label><input class="calc-input" id="c-price" value="499" type="number" oninput="calcIncome()"></div>
+      <div class="calc-row"><label class="calc-label">Broker referrals/mo</label><input class="calc-input" id="c-ref" value="5" type="number" oninput="calcIncome()"></div>
+      <div class="calc-row"><label class="calc-label">Course sales/mo</label><input class="calc-input" id="c-course" value="10" type="number" oninput="calcIncome()"></div>
+      <div class="calc-result">
+        <div><div class="calc-res-val" id="r-sub">₹49,900</div><div class="calc-res-label">Subscriptions</div></div>
+        <div><div class="calc-res-val" id="r-ref">₹25,000</div><div class="calc-res-label">Affiliates</div></div>
+        <div><div class="calc-res-val" id="r-total">₹94,900</div><div class="calc-res-label">Total/month</div></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:1rem">
+      <div class="calc-box" style="flex:1">
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-bottom:.75rem">FREE TOOLS USED</div>
+        <div id="tools-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="sec-label">Membership Plans</div>
+  <div class="sec-title">Apna plan chunein</div>
+  <div class="pricing-grid" id="pricing-grid"></div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">TradeMatrix AI</div>
+      <div class="footer-desc">AI-powered trading intelligence platform. 24/7 automated signals, analysis aur market updates.</div>
+    </div>
+    <div class="footer-col">
+      <h5>Platform</h5>
+      <a href="#signals">Live Signals</a>
+      <a href="#analysis">Analysis</a>
+      <a href="#news">News</a>
+      <a href="#ai-bot">AI Bot</a>
+    </div>
+    <div class="footer-col">
+      <h5>Resources</h5>
+      <a href="#">ICT Concepts</a>
+      <a href="#">SMC Guide</a>
+      <a href="#">Video Course</a>
+      <a href="#">Telegram Group</a>
+    </div>
+    <div class="footer-col">
+      <h5>Legal</h5>
+      <a href="#">Disclaimer</a>
+      <a href="#">Privacy Policy</a>
+      <a href="#">Terms of Use</a>
+      <a href="#">Risk Warning</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2025 TradeMatrix AI. Trading involves risk.</span>
+    <span style="color:var(--accent)">Built with AI automation</span>
+  </div>
+</footer>
+
+<script>
+const tickers=[
+  {sym:'XAUUSD',p:'2318.45',ch:'+0.34%',up:true},{sym:'EURUSD',p:'1.0842',ch:'-0.12%',up:false},
+  {sym:'BTCUSD',p:'67,420',ch:'+1.87%',up:true},{sym:'GBPUSD',p:'1.2734',ch:'+0.08%',up:true},
+  {sym:'USDJPY',p:'154.82',ch:'+0.22%',up:true},{sym:'ETHUSD',p:'3,241',ch:'+2.14%',up:true},
+  {sym:'NASDAQ',p:'18,420',ch:'+0.56%',up:true},{sym:'SP500',p:'5,234',ch:'+0.31%',up:true},
+  {sym:'USDCAD',p:'1.3621',ch:'-0.09%',up:false},{sym:'AUDUSD',p:'0.6587',ch:'+0.18%',up:true}
+];
+const tkEl=document.getElementById('ticker');
+[...tickers,...tickers].forEach(t=>{
+  tkEl.innerHTML+=`<div class="tick-item"><span class="tick-sym">${t.sym}</span><span class="tick-price">${t.p}</span><span class="${t.up?'tick-up':'tick-dn'}">${t.ch}</span></div>`;
+});
+
+const signals=[
+  {pair:'XAUUSD',type:'buy',entry:'2312.00',sl:'2298.00',tp:'2340.00',conf:84,tf:'H4',age:'12min ago'},
+  {pair:'EURUSD',type:'sell',entry:'1.0865',sl:'1.0895',tp:'1.0820',conf:76,tf:'H1',age:'38min ago'},
+  {pair:'BTCUSD',type:'buy',entry:'66,800',sl:'65,200',tp:'69,500',conf:91,tf:'D1',age:'2hrs ago'},
+  {pair:'GBPJPY',type:'sell',entry:'197.40',sl:'198.20',tp:'195.80',conf:68,tf:'H1',age:'1hr ago'},
+  {pair:'USDJPY',type:'watch',entry:'154.50',sl:'153.80',tp:'156.00',conf:55,tf:'H4',age:'45min ago'},
+  {pair:'ETHUSD',type:'buy',entry:'3,180',sl:'3,050',tp:'3,420',conf:79,tf:'H4',age:'3hrs ago'},
+];
+const sg=document.getElementById('signals-grid');
+signals.forEach(s=>{
+  sg.innerHTML+=`<div class="signal-card ${s.type} fade-up">
+    <div class="sig-top"><span class="sig-pair">${s.pair}</span><span class="sig-badge ${s.type}">${s.type.toUpperCase()}</span></div>
+    <div class="sig-levels">
+      <div class="sig-level"><div class="sig-level-label">ENTRY</div><div class="sig-level-val entry">${s.entry}</div></div>
+      <div class="sig-level"><div class="sig-level-label">STOP</div><div class="sig-level-val sl">${s.sl}</div></div>
+      <div class="sig-level"><div class="sig-level-label">TARGET</div><div class="sig-level-val tp">${s.tp}</div></div>
+    </div>
+    <div class="sig-meta">
+      <span class="sig-ai-badge">◈ AI ${s.tf}</span>
+      <div class="sig-conf"><span style="font-size:11px;color:var(--muted)">${s.conf}%</span><div class="conf-bar"><div class="conf-fill" style="width:${s.conf}%"></div></div></div>
+      <span style="font-size:10px">${s.age}</span>
+    </div>
+  </div>`;
+});
+
+function buildCandles(){
+  const data=[62,58,65,60,70,67,74,69,78,72,80,76,83,79,86];
+  const max=Math.max(...data),min=Math.min(...data),range=max-min;
+  return data.map((v,i)=>{
+    const up=i===0||(v>data[i-1]);
+    const h=(v-min)/range*140+10;
+    const bodyH=Math.max(4,Math.random()*20+8);
+    const topWick=Math.random()*8+2;
+    return `<div class="candle-wrap ${up?'up':'dn'}" title="${v}">
+      <div class="wick" style="height:${topWick}px"></div>
+      <div class="body" style="height:${bodyH}px"></div>
+      <div class="wick" style="height:${Math.random()*6+2}px"></div>
+    </div>`;
+  }).join('');
+}
+
+const dashData={
+  xauusd:{price:'2318.45',change:'+0.34%',up:true,high:'2331.20',low:'2298.10',vol:'142K'},
+  eurusd:{price:'1.0842',change:'-0.12%',up:false,high:'1.0878',low:'1.0821',vol:'89K'},
+  btcusd:{price:'67,420',change:'+1.87%',up:true,high:'68,100',low:'65,900',vol:'31K'},
+  gbpusd:{price:'1.2734',change:'+0.08%',up:true,high:'1.2768',low:'1.2701',vol:'54K'}
+};
+function renderDash(sym){
+  const d=dashData[sym]||dashData.xauusd;
+  document.getElementById('dash-body').innerHTML=`
+    <div class="chart-area">
+      <div class="chart-title"><span>${sym.toUpperCase()} — H4</span><span style="color:${d.up?'var(--green)':'var(--red)'}">●${d.change}</span></div>
+      <div class="candles">${buildCandles()}</div>
+    </div>
+    <div class="stats-col">
+      <div class="stat-box"><div><div class="stat-label">Price</div><div class="stat-val ${d.up?'up':'dn'}">${d.price}</div></div><span class="stat-change ${d.up?'up':'dn'}">${d.change}</span></div>
+      <div class="stat-box"><div><div class="stat-label">24H High</div><div class="stat-val" style="font-size:16px">${d.high}</div></div></div>
+      <div class="stat-box"><div><div class="stat-label">24H Low</div><div class="stat-val" style="font-size:16px">${d.low}</div></div></div>
+      <div class="stat-box"><div><div class="stat-label">Volume</div><div class="stat-val" style="font-size:16px">${d.vol}</div></div></div>
+    </div>`;
+}
+renderDash('xauusd');
+function switchTab(el,sym){
+  document.querySelectorAll('.dash-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderDash(sym);
+}
+
+const ag=document.getElementById('analysis-grid');
+ag.innerHTML=`
+  <div class="analysis-card">
+    <h4>Liquidity Zones — XAUUSD</h4>
+    ${[
+      {p:'2340.00',pct:90,t:'res'},{p:'2328.50',pct:75,t:'res'},
+      {p:'2318.00',pct:50,t:'res'},{p:'2298.00',pct:70,t:'sup'},
+      {p:'2285.50',pct:85,t:'sup'},{p:'2270.00',pct:95,t:'sup'}
+    ].map(l=>`<div class="liq-level">
+      <span class="liq-price" style="color:${l.t==='res'?'var(--red)':'var(--green)'}">${l.p}</span>
+      <div class="liq-bar-wrap"><div class="liq-bar" style="width:${l.pct}%;background:${l.t==='res'?'var(--red)':'var(--green)'}"></div></div>
+      <span class="liq-type ${l.t}">${l.t==='res'?'RESIST':'SUPPORT'}</span>
+    </div>`).join('')}
+  </div>
+  <div class="analysis-card">
+    <h4>Market Structure Updates</h4>
+    ${[
+      {icon:'◈',bg:'rgba(0,229,160,.1)',col:'var(--green)',t:'BOS Confirmed',s:'XAUUSD H4 bullish BOS — 2310 ke upar close'},
+      {icon:'▲',bg:'rgba(124,109,250,.1)',col:'var(--accent2)',t:'Order Block',s:'EURUSD H1 bearish OB identified — 1.0870 zone'},
+      {icon:'◇',bg:'rgba(255,107,53,.1)',col:'var(--accent3)',t:'FVG Filled',s:'BTCUSD H4 FVG fill complete — next target 69K'},
+      {icon:'↓',bg:'rgba(255,69,96,.1)',col:'var(--red)',t:'Liquidity Sweep',s:'GBPUSD sweep of lows at 1.2695 — reversal likely'},
+      {icon:'●',bg:'rgba(0,229,160,.1)',col:'var(--green)',t:'ChoCH Signal',s:'USDJPY ChoCH on M15 — short term bearish shift'},
+    ].map(s=>`<div class="struct-item">
+      <div class="struct-icon" style="background:${s.bg};color:${s.col}">${s.icon}</div>
+      <div><div class="struct-title">${s.t}</div><div class="struct-sub">${s.s}</div></div>
+    </div>`).join('')}
+  </div>`;
+
+const news=[
+  {t:'Fed Chair Powell: Rate cuts will be data-dependent',src:'Reuters',time:'2m ago',impact:'high',cat:'USD'},
+  {t:'Gold hits 2-week high on dollar weakness and safe-haven demand',src:'Bloomberg',time:'15m ago',impact:'high',cat:'XAUUSD'},
+  {t:'UK CPI data beats expectations — GBP strengthens',src:'FT',time:'1hr ago',impact:'med',cat:'GBP'},
+  {t:'Bitcoin ETF inflows surge — $380M in single day',src:'CoinDesk',time:'2hr ago',impact:'med',cat:'BTC'},
+  {t:'Japan BOJ holds rates — Yen remains under pressure',src:'Nikkei',time:'3hr ago',impact:'high',cat:'JPY'},
+  {t:'US Jobless Claims lower than expected — risk-on sentiment',src:'WSJ',time:'4hr ago',impact:'low',cat:'USD'},
+];
+const ng=document.getElementById('news-grid');
+news.forEach(n=>{
+  ng.innerHTML+=`<div class="news-item">
+    <div class="news-time">${n.time}</div>
+    <div class="news-body">
+      <div class="news-title">${n.t}</div>
+      <div class="news-meta"><span>${n.src}</span><span class="news-impact ${n.impact}">${n.impact.toUpperCase()}</span><span style="background:rgba(124,109,250,.1);color:var(--accent2);font-size:10px;padding:2px 8px;border-radius:3px;font-family:var(--mono)">${n.cat}</span></div>
+    </div>
+  </div>`;
+});
+
+const aiMsgs=[
+  {role:'bot',msg:'Namaste! Main TradeMatrix AI hoon. Aaj XAUUSD bullish hai — 2298 strong support zone pe hai. Main kya help kar sakta hoon?'},
+];
+const msgEl=document.getElementById('ai-messages');
+function renderMsgs(){
+  msgEl.innerHTML=aiMsgs.map(m=>`
+    <div class="ai-msg ${m.role}">
+      <div>${m.msg}</div>
+    </div>`).join('');
+  msgEl.scrollTop=msgEl.scrollHeight;
+}
+renderMsgs();
+const aiResponses={
+  'xauusd trend?':'XAUUSD H4 trend abhi BULLISH hai. 2298 key support, 2340 next liquidity target. BOS confirmed above 2310. Entry zone: 2305-2312.',
+  'liquidity levels today?':'Today key liquidity zones:\n• XAUUSD: 2298 (SUP) | 2340 (RES)\n• EURUSD: 1.0820 (SUP) | 1.0878 (RES)\n• BTC: 65,200 (SUP) | 69,500 (RES)',
+  'best pair to trade now?':'Current best setups:\n1. XAUUSD BUY — 84% AI confidence\n2. BTCUSD BUY — 91% confidence\n3. EURUSD SELL — 76% confidence\nBTCUSD H4 strongest setup hai.',
+  'market structure btc?':'BTCUSD D1: Bullish market structure. Last BOS at 65,800. FVG filled at 66,200. Next draw on liquidity: 69,500. ChoCH nahi hua — trend intact.',
+};
+function sendMsg(){
+  const inp=document.getElementById('ai-input');
+  const q=inp.value.trim();
+  if(!q)return;
+  askAI(q);
+  inp.value='';
+}
+function askAI(q){
+  aiMsgs.push({role:'user',msg:q});
+  renderMsgs();
+  setTimeout(()=>{
+    const key=Object.keys(aiResponses).find(k=>q.toLowerCase().includes(k.replace('?','')))||null;
+    const ans=key?aiResponses[key]:`"${q}" — Abhi market analyze kar raha hoon. XAUUSD 2312 pe trading hai, bullish bias with 2298 as key support. Koi specific pair ke baare mein jaanna hai?`;
+    aiMsgs.push({role:'bot',msg:ans});
+    renderMsgs();
+  },1200);
+}
+
+const autoFeatures=[
+  {icon:'◈',bg:'rgba(0,229,160,.1)',col:'var(--green)',t:'Signal Generator',d:'AI har 15 min mein chart scan karta hai aur signals auto-post karta hai.',on:true},
+  {icon:'▶',bg:'rgba(124,109,250,.1)',col:'var(--accent2)',t:'Telegram Bot',d:'Signals auto Telegram channel pe post hote hain. Members ko instant alert.',on:true},
+  {icon:'◎',bg:'rgba(255,107,53,.1)',col:'var(--accent3)',t:'News Feed',d:'ForexFactory + RSS se news auto-fetch hoti hai har ghante.',on:true},
+  {icon:'◆',bg:'rgba(0,229,160,.1)',col:'var(--green)',t:'Liquidity Scanner',d:'Key levels daily update hote hain — AI order flow track karta hai.',on:true},
+  {icon:'○',bg:'rgba(255,69,96,.1)',col:'var(--red)',t:'Email Alerts',d:'High-impact events pe automatic email aata hai premium members ko.',on:false},
+  {icon:'◉',bg:'rgba(124,109,250,.1)',col:'var(--accent2)',t:'Performance Tracker',d:'Har signal ka result track hota hai — win rate auto-calculate.',on:true},
+  {icon:'▣',bg:'rgba(255,107,53,.1)',col:'var(--accent3)',t:'Affiliate Tracker',d:'Broker clicks aur conversions automatically track hote hain.',on:false},
+  {icon:'◐',bg:'rgba(0,229,160,.1)',col:'var(--green)',t:'Content Scheduler',d:'Weekly analysis posts auto-scheduled hote hain — SEO ke liye.',on:true},
+];
+const autg=document.getElementById('auto-grid');
+autoFeatures.forEach(f=>{
+  autg.innerHTML+=`<div class="auto-card">
+    <div class="auto-icon" style="background:${f.bg};color:${f.col}">${f.icon}</div>
+    <div class="auto-title">${f.t}</div>
+    <div class="auto-desc">${f.d}</div>
+    <span class="auto-status ${f.on?'on':'off'}"><span class="status-dot"></span>${f.on?'ACTIVE':'SETUP NEEDED'}</span>
+  </div>`;
+});
+
+const tools=[
+  {t:'WordPress.com',cat:'Website'},
+  {t:'TradingView widgets',cat:'Charts'},
+  {t:'Telegram Bot API',cat:'Alerts'},
+  {t:'Substack/Patreon',cat:'Premium'},
+  {t:'Gumroad',cat:'Courses'},
+  {t:'Google Analytics',cat:'Traffic'},
+  {t:'Exness Affiliate',cat:'Income'},
+  {t:'Make.com (free)',cat:'Automation'},
+];
+const tl=document.getElementById('tools-list');
+tools.forEach(t=>{
+  tl.innerHTML+=`<div style="display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid var(--border);font-size:13px">
+    <span style="color:var(--text)">${t.t}</span>
+    <span style="font-family:var(--mono);font-size:10px;color:var(--accent);background:rgba(0,229,160,.08);padding:2px 8px;border-radius:3px">${t.cat}</span>
+  </div>`;
+});
+
+function calcIncome(){
+  const prem=+document.getElementById('c-prem').value||0;
+  const price=+document.getElementById('c-price').value||0;
+  const ref=+document.getElementById('c-ref').value||0;
+  const course=+document.getElementById('c-course').value||0;
+  const sub=prem*price;
+  const aff=ref*5000;
+  const crs=course*1999;
+  const total=sub+aff+crs;
+  const fmt=v=>'₹'+v.toLocaleString('en-IN');
+  document.getElementById('r-sub').textContent=fmt(sub);
+  document.getElementById('r-ref').textContent=fmt(aff);
+  document.getElementById('r-total').textContent=fmt(total);
+}
+
+const plans=[
+  {tier:'Free',price:'₹0',ps:'/forever',features:[
+    {t:'Delayed signals (4hr)',a:true},{t:'Weekly analysis',a:true},{t:'Market news feed',a:true},
+    {t:'Basic charts',a:true},{t:'Live signals',a:false},{t:'AI bot access',a:false},{t:'Telegram alerts',a:false}
+  ],btn:'Get Started',solid:false,feat:false},
+  {tier:'Pro',price:'₹499',ps:'/month',features:[
+    {t:'Live signals (instant)',a:true},{t:'Daily analysis',a:true},{t:'Market news feed',a:true},
+    {t:'Full charts access',a:true},{t:'AI bot access',a:true},{t:'Telegram alerts',a:true},{t:'Email support',a:false}
+  ],btn:'Start Free Trial',solid:true,feat:true},
+  {tier:'Elite',price:'₹999',ps:'/month',features:[
+    {t:'Everything in Pro',a:true},{t:'1-on-1 consultation',a:true},{t:'Private Telegram',a:true},
+    {t:'ICT/SMC course',a:true},{t:'AI bot priority',a:true},{t:'Broker setup help',a:true},{t:'24/7 support',a:true}
+  ],btn:'Join Elite',solid:false,feat:false},
+];
+const pg=document.getElementById('pricing-grid');
+plans.forEach(p=>{
+  pg.innerHTML+=`<div class="pricing-card ${p.feat?'featured':''}">
+    ${p.feat?'<div class="pricing-featured-badge">Most Popular</div>':''}
+    <div class="pricing-tier">${p.tier}</div>
+    <div class="pricing-price">${p.price}<span>${p.ps}</span></div>
+    <ul class="pricing-features">${p.features.map(f=>`<li class="${f.a?'active':''}">${f.t}</li>`).join('')}</ul>
+    <button class="pricing-btn ${p.solid?'solid':'outline'}">${p.btn}</button>
+  </div>`;
+});
+
+setInterval(()=>{
+  const el=document.getElementById('stat-signals');
+  if(el)el.textContent=parseInt(el.textContent)+Math.floor(Math.random()*3);
+},8000);
+</script>
+</body>
+</html>
